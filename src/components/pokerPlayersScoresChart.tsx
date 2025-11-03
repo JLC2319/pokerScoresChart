@@ -6,12 +6,14 @@ interface Player {
   points: number;
   games: number;
   ppg: number;
+  bounty?: number;
 }
 
 interface Series {
   id: string;
   name: string;
   createdAt: string;
+  hasBounty: boolean;
 }
 
 const PokerPlayerScoresChart = () => {
@@ -20,6 +22,7 @@ const PokerPlayerScoresChart = () => {
     name: '',
     points: '',
     games: '',
+    bounty: '',
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
@@ -29,7 +32,7 @@ const PokerPlayerScoresChart = () => {
   const [currentSeries, setCurrentSeries] = useState<Series | null>(null);
   const [showAddSeries, setShowAddSeries] = useState(false);
   const [showEditSeries, setShowEditSeries] = useState(false);
-  const [seriesFormData, setSeriesFormData] = useState({ name: '' });
+  const [seriesFormData, setSeriesFormData] = useState({ name: '', hasBounty: false });
 
   // Load series and players from localStorage on component mount
   useEffect(() => {
@@ -99,7 +102,8 @@ const PokerPlayerScoresChart = () => {
   const createDefaultSeries = (): Series => ({
     id: 'default',
     name: 'Default Series',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    hasBounty: false
   });
 
   const handleAddSeries = () => {
@@ -107,24 +111,28 @@ const PokerPlayerScoresChart = () => {
       const newSeries: Series = {
         id: Date.now().toString(),
         name: seriesFormData.name.trim(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        hasBounty: seriesFormData.hasBounty
       };
       setSeries(prev => [...prev, newSeries]);
       setCurrentSeries(newSeries);
-      setSeriesFormData({ name: '' });
+      setSeriesFormData({ name: '', hasBounty: false });
       setShowAddSeries(false);
     }
   };
 
   const handleEditSeries = () => {
     if (currentSeries && seriesFormData.name.trim()) {
+      const updatedSeries = { 
+        ...currentSeries, 
+        name: seriesFormData.name.trim(), 
+        hasBounty: seriesFormData.hasBounty 
+      };
       setSeries(prev => prev.map(s => 
-        s.id === currentSeries.id 
-          ? { ...s, name: seriesFormData.name.trim() }
-          : s
+        s.id === currentSeries.id ? updatedSeries : s
       ));
-      setCurrentSeries(prev => prev ? { ...prev, name: seriesFormData.name.trim() } : null);
-      setSeriesFormData({ name: '' });
+      setCurrentSeries(updatedSeries);
+      setSeriesFormData({ name: '', hasBounty: false });
       setShowEditSeries(false);
     }
   };
@@ -149,6 +157,7 @@ const PokerPlayerScoresChart = () => {
     
     const points = parseFloat(formData.points) || 0;
     const games = parseInt(formData.games) || 0;
+    const bounty = parseFloat(formData.bounty) || 0;
     const ppg = calculatePPG(points, games);
 
     if (editingId) {
@@ -160,7 +169,8 @@ const PokerPlayerScoresChart = () => {
               name: formData.name,
               points: player.points + points, // Add to existing points
               games: player.games + games,   // Add to existing games
-              ppg: calculatePPG(player.points + points, player.games + games)
+              ppg: calculatePPG(player.points + points, player.games + games),
+              bounty: (player.bounty || 0) + bounty // Add to existing bounty
             }
           : player
       ));
@@ -176,7 +186,8 @@ const PokerPlayerScoresChart = () => {
                 ...player,
                 points: player.points + points,
                 games: player.games + games,
-                ppg: calculatePPG(player.points + points, player.games + games)
+                ppg: calculatePPG(player.points + points, player.games + games),
+                bounty: (player.bounty || 0) + bounty
               }
             : player
         ));
@@ -187,14 +198,15 @@ const PokerPlayerScoresChart = () => {
           name: formData.name,
           points,
           games,
-          ppg
+          ppg,
+          bounty: currentSeries?.hasBounty ? bounty : undefined
         };
         setPlayers(prev => [...prev, newPlayer]);
       }
     }
 
     // Reset form
-    setFormData({ name: '', points: '', games: '' });
+    setFormData({ name: '', points: '', games: '', bounty: '' });
     setEditingId(null);
     
     // Show success message
@@ -206,7 +218,8 @@ const PokerPlayerScoresChart = () => {
     setFormData({
       name: player.name,
       points: '',
-      games: ''
+      games: '',
+      bounty: ''
     });
     setEditingId(player.id);
   };
@@ -271,7 +284,10 @@ const PokerPlayerScoresChart = () => {
             {/* Edit Series Button */}
             <button
               onClick={() => {
-                setSeriesFormData({ name: currentSeries?.name || '' });
+                setSeriesFormData({ 
+                  name: currentSeries?.name || '', 
+                  hasBounty: currentSeries?.hasBounty || false 
+                });
                 setShowEditSeries(true);
               }}
               disabled={!currentSeries}
@@ -352,6 +368,23 @@ const PokerPlayerScoresChart = () => {
               />
             </div>
 
+            {currentSeries?.hasBounty && (
+              <div>
+                <label htmlFor="bounty" className="block mb-2 text-sm font-medium">
+                  Bounty <span className="text-gray-400">(will be added to existing)</span>
+                </label>
+                <input
+                  type="number"
+                  id="bounty"
+                  name="bounty"
+                  value={formData.bounty}
+                  onChange={handleInputChange}
+                  step="0.01"
+                  className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
               className="px-4 py-2 font-bold text-black transition-colors bg-yellow-600 rounded hover:bg-yellow-700"
@@ -387,6 +420,9 @@ const PokerPlayerScoresChart = () => {
                     <th className="px-2 py-3 font-bold text-yellow-400">Points</th>
                     <th className="px-2 py-3 font-bold text-yellow-400">Games</th>
                     <th className="px-2 py-3 font-bold text-yellow-400">PPG</th>
+                    {currentSeries?.hasBounty && (
+                      <th className="px-2 py-3 font-bold text-yellow-400">Bounty</th>
+                    )}
                     <th className="px-2 py-3 font-bold text-yellow-400">Actions</th>
                   </tr>
                 </thead>
@@ -398,6 +434,9 @@ const PokerPlayerScoresChart = () => {
                       <td className="px-2 py-3">{player.points.toFixed(2)}</td>
                       <td className="px-2 py-3">{player.games}</td>
                       <td className="px-2 py-3">{player.ppg.toFixed(2)}</td>
+                      {currentSeries?.hasBounty && (
+                        <td className="px-2 py-3">{(player.bounty || 0).toFixed(2)}</td>
+                      )}
                       <td className="px-2 py-3">
                         <button
                           onClick={() => handleEdit(player)}
@@ -434,13 +473,13 @@ const PokerPlayerScoresChart = () => {
                     type="text"
                     id="new-series-name"
                     value={seriesFormData.name}
-                    onChange={(e) => setSeriesFormData({ name: e.target.value })}
+                    onChange={(e) => setSeriesFormData(prev => ({ ...prev, name: e.target.value }))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && seriesFormData.name.trim()) {
                         handleAddSeries();
                       } else if (e.key === 'Escape') {
                         setShowAddSeries(false);
-                        setSeriesFormData({ name: '' });
+                        setSeriesFormData({ name: '', hasBounty: false });
                       }
                     }}
                     className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -448,11 +487,22 @@ const PokerPlayerScoresChart = () => {
                     autoFocus
                   />
                 </div>
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={seriesFormData.hasBounty}
+                      onChange={(e) => setSeriesFormData(prev => ({ ...prev, hasBounty: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm font-medium">Include Bounty Column</span>
+                  </label>
+                </div>
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => {
                       setShowAddSeries(false);
-                      setSeriesFormData({ name: '' });
+                      setSeriesFormData({ name: '', hasBounty: false });
                     }}
                     className="px-4 py-2 text-gray-300 bg-gray-600 rounded hover:bg-gray-700"
                   >
@@ -485,13 +535,13 @@ const PokerPlayerScoresChart = () => {
                     type="text"
                     id="edit-series-name"
                     value={seriesFormData.name}
-                    onChange={(e) => setSeriesFormData({ name: e.target.value })}
+                    onChange={(e) => setSeriesFormData(prev => ({ ...prev, name: e.target.value }))}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && seriesFormData.name.trim()) {
                         handleEditSeries();
                       } else if (e.key === 'Escape') {
                         setShowEditSeries(false);
-                        setSeriesFormData({ name: '' });
+                        setSeriesFormData({ name: '', hasBounty: false });
                       }
                     }}
                     className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -499,11 +549,22 @@ const PokerPlayerScoresChart = () => {
                     autoFocus
                   />
                 </div>
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={seriesFormData.hasBounty}
+                      onChange={(e) => setSeriesFormData(prev => ({ ...prev, hasBounty: e.target.checked }))}
+                      className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                    />
+                    <span className="text-sm font-medium">Include Bounty Column</span>
+                  </label>
+                </div>
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => {
                       setShowEditSeries(false);
-                      setSeriesFormData({ name: '' });
+                      setSeriesFormData({ name: '', hasBounty: false });
                     }}
                     className="px-4 py-2 text-gray-300 bg-gray-600 rounded hover:bg-gray-700"
                   >
