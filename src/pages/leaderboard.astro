@@ -1,6 +1,6 @@
 ---
 import {LeaderboardComponent} from '../components/Leaderboard.tsx';
-
+import '../styles/global.css';
 ---
 
 <html lang="en">
@@ -12,5 +12,5 @@ import {LeaderboardComponent} from '../components/Leaderboard.tsx';
     <title>Poker Players Leaderboard</title>
   </head>
   <body>
-    <LeaderboardComponent seriesData={{ 'foo': 'bar' }} />
+    <LeaderboardComponent client:load seriesData={{}} />
   </body>

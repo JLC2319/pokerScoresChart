@@ -16,7 +16,7 @@ interface Series {
   hasBounty: boolean;
 }
 
-const PokerPlayerScoresChart = () => {
+const PokerPlayersScoresChart = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -587,4 +587,4 @@ const PokerPlayerScoresChart = () => {
   );
 };
 
-export default PokerPlayerScoresChart;
+export default PokerPlayersScoresChart;
