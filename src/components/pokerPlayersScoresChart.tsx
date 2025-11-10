@@ -35,6 +35,7 @@ const PokerPlayersScoresChart = () => {
   const [showEditSeries, setShowEditSeries] = useState(false);
   const [seriesFormData, setSeriesFormData] = useState({ name: '', hasBounty: false, image: '' });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [importError, setImportError] = useState<string>('');
 
   // Load series and players from localStorage on component mount
   useEffect(() => {
@@ -149,6 +150,124 @@ const PokerPlayersScoresChart = () => {
     if (selectedSeries) {
       setCurrentSeries(selectedSeries);
     }
+  };
+
+  // CSV Export/Import functions
+  const exportSeriesToCSV = () => {
+    if (!currentSeries || players.length === 0) {
+      setImportError('No data to export');
+      setTimeout(() => setImportError(''), 3000);
+      return;
+    }
+
+    // Create CSV headers
+    const headers = ['Name', 'Points', 'Games', 'PPG'];
+    if (currentSeries.hasBounty) {
+      headers.push('Bounty');
+    }
+
+    // Create CSV rows
+    const csvRows = [
+      headers.join(','),
+      ...players.map(player => {
+        const row = [
+          `"${player.name.replace(/"/g, '""')}"`, // Escape quotes in names
+          player.points.toFixed(2),
+          player.games.toString(),
+          player.ppg.toFixed(2)
+        ];
+        if (currentSeries.hasBounty) {
+          row.push((player.bounty || 0).toFixed(2));
+        }
+        return row.join(',');
+      })
+    ];
+
+    // Create and download CSV file
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${currentSeries.name.replace(/[^a-z0-9]/gi, '_')}_players.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const importSeriesFromCSV = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const csvText = e.target?.result as string;
+        const lines = csvText.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          throw new Error('CSV file must contain at least a header row and one data row');
+        }
+
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        const expectedHeaders = ['Name', 'Points', 'Games', 'PPG'];
+        
+        // Check if bounty column exists
+        const hasBountyColumn = headers.includes('Bounty');
+        if (hasBountyColumn) {
+          expectedHeaders.push('Bounty');
+        }
+
+        // Validate headers
+        if (!expectedHeaders.every(header => headers.includes(header))) {
+          throw new Error(`CSV must contain columns: ${expectedHeaders.join(', ')}`);
+        }
+
+        // Parse data rows
+        const importedPlayers: Player[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+          
+          if (values.length !== headers.length) {
+            throw new Error(`Row ${i + 1} has incorrect number of columns`);
+          }
+
+          const name = values[headers.indexOf('Name')];
+          const points = parseFloat(values[headers.indexOf('Points')]);
+          const games = parseInt(values[headers.indexOf('Games')]);
+          const ppg = parseFloat(values[headers.indexOf('PPG')]);
+          const bounty = hasBountyColumn ? parseFloat(values[headers.indexOf('Bounty')]) || 0 : undefined;
+
+          if (!name || isNaN(points) || isNaN(games) || isNaN(ppg)) {
+            throw new Error(`Row ${i + 1} contains invalid data`);
+          }
+
+          importedPlayers.push({
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9), // Generate unique ID
+            name,
+            points,
+            games,
+            ppg,
+            bounty: hasBountyColumn ? bounty : undefined
+          });
+        }
+
+        // Update players state
+        setPlayers(importedPlayers);
+        setSuccessMessage(`Successfully imported ${importedPlayers.length} players from CSV`);
+        setTimeout(() => setSuccessMessage(''), 3000);
+        setImportError('');
+
+      } catch (error) {
+        setImportError(error instanceof Error ? error.message : 'Failed to parse CSV file');
+        setTimeout(() => setImportError(''), 5000);
+      }
+    };
+
+    reader.readAsText(file);
+    // Reset file input
+    event.target.value = '';
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -312,6 +431,26 @@ const PokerPlayersScoresChart = () => {
             >
               Edit Series
             </button>
+
+            {/* Export CSV Button */}
+            <button
+              onClick={exportSeriesToCSV}
+              disabled={!currentSeries || players.length === 0}
+              className="px-4 py-2 font-bold text-black transition-colors bg-purple-600 rounded hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            >
+              Export CSV
+            </button>
+
+            {/* Import CSV Button */}
+            <label className="px-4 py-2 font-bold text-black transition-colors bg-indigo-600 rounded hover:bg-indigo-700 cursor-pointer">
+              Import CSV
+              <input
+                type="file"
+                accept=".csv"
+                onChange={importSeriesFromCSV}
+                className="hidden"
+              />
+            </label>
           </div>
         </div>
 
@@ -319,6 +458,13 @@ const PokerPlayersScoresChart = () => {
         {successMessage && (
           <div className="px-4 py-2 mb-6 text-center text-white bg-green-600 rounded">
             {successMessage}
+          </div>
+        )}
+
+        {/* Import Error Message */}
+        {importError && (
+          <div className="px-4 py-2 mb-6 text-center text-white bg-red-600 rounded">
+            {importError}
           </div>
         )}
 
