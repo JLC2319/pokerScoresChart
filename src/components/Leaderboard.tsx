@@ -68,9 +68,17 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
     <div className="min-h-screen p-6 text-white bg-gray-900">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <h1 className="mb-8 text-4xl font-bold text-center text-blue-400">
-          The Foundation - Leaderboard
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-blue-400">
+            The Foundation - Leaderboard
+          </h1>
+          <a
+            href="/"
+            className="px-4 py-2 font-bold text-black transition-colors bg-gray-600 rounded hover:bg-gray-700"
+          >
+            Back to Dashboard
+          </a>
+        </div>
 
         {/* Series Selector */}
         <div className="p-6 mb-8 bg-gray-800 rounded-lg">
@@ -107,11 +115,11 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
             Current Standings
           </h2>
           {currentSeries?.image && (
-            <div className="mb-4 flex justify-center">
+            <div className="flex justify-center mb-4">
               <img 
                 src={currentSeries.image} 
                 alt={`${currentSeries.name} series`} 
-                className="max-w-48 max-h-48 object-contain rounded-lg border border-gray-600"
+                className="object-cover w-full border border-gray-600 rounded-lg max-h-48"
               />
             </div>
           )}

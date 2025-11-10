@@ -249,9 +249,17 @@ const PokerPlayersScoresChart = () => {
     <div className="min-h-screen p-6 text-white bg-gray-900">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <h1 className="mb-8 text-4xl font-bold text-center text-blue-400">
-          The Foundation
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-blue-400">
+            The Foundation
+          </h1>
+          <a
+            href="/leaderboard"
+            className="px-4 py-2 font-bold text-black transition-colors bg-blue-600 rounded hover:bg-blue-700"
+          >
+            Go to Leaderboard
+          </a>
+        </div>
 
         {/* Series Selector */}
         <div className="p-6 mb-8 bg-gray-800 rounded-lg">
@@ -409,15 +417,6 @@ const PokerPlayersScoresChart = () => {
           <h2 className="mb-2 text-2xl font-bold text-blue-400">
             Current Standings
           </h2>
-          {currentSeries?.image && (
-            <div className="flex justify-center mb-4">
-              <img 
-                src={currentSeries.image} 
-                alt={`${currentSeries.name} series`} 
-                className="object-contain border border-gray-600 rounded-lg max-w-48 max-h-48"
-              />
-            </div>
-          )}
           {currentSeries && (
             <p className="mb-4 text-sm text-gray-400">
               Series: {currentSeries.name}
