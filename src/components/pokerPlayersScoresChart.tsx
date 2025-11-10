@@ -442,7 +442,7 @@ const PokerPlayersScoresChart = () => {
             </button>
 
             {/* Import CSV Button */}
-            <label className="px-4 py-2 font-bold text-black transition-colors bg-indigo-600 rounded hover:bg-indigo-700 cursor-pointer">
+            <label className="px-4 py-2 font-bold text-black transition-colors bg-indigo-600 rounded cursor-pointer hover:bg-indigo-700">
               Import CSV
               <input
                 type="file"
