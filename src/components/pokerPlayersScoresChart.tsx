@@ -14,6 +14,7 @@ interface Series {
   name: string;
   createdAt: string;
   hasBounty: boolean;
+  image?: string;
 }
 
 const PokerPlayersScoresChart = () => {
@@ -32,7 +33,8 @@ const PokerPlayersScoresChart = () => {
   const [currentSeries, setCurrentSeries] = useState<Series | null>(null);
   const [showAddSeries, setShowAddSeries] = useState(false);
   const [showEditSeries, setShowEditSeries] = useState(false);
-  const [seriesFormData, setSeriesFormData] = useState({ name: '', hasBounty: false });
+  const [seriesFormData, setSeriesFormData] = useState({ name: '', hasBounty: false, image: '' });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Load series and players from localStorage on component mount
   useEffect(() => {
@@ -103,7 +105,8 @@ const PokerPlayersScoresChart = () => {
     id: 'default',
     name: 'Default Series',
     createdAt: new Date().toISOString(),
-    hasBounty: false
+    hasBounty: false,
+    image: undefined
   });
 
   const handleAddSeries = () => {
@@ -112,11 +115,13 @@ const PokerPlayersScoresChart = () => {
         id: Date.now().toString(),
         name: seriesFormData.name.trim(),
         createdAt: new Date().toISOString(),
-        hasBounty: seriesFormData.hasBounty
+        hasBounty: seriesFormData.hasBounty,
+        image: seriesFormData.image.trim() || undefined
       };
       setSeries(prev => [...prev, newSeries]);
       setCurrentSeries(newSeries);
-      setSeriesFormData({ name: '', hasBounty: false });
+      setSeriesFormData({ name: '', hasBounty: false, image: '' });
+      setImagePreview(null);
       setShowAddSeries(false);
     }
   };
@@ -126,13 +131,15 @@ const PokerPlayersScoresChart = () => {
       const updatedSeries = { 
         ...currentSeries, 
         name: seriesFormData.name.trim(), 
-        hasBounty: seriesFormData.hasBounty 
+        hasBounty: seriesFormData.hasBounty,
+        image: seriesFormData.image.trim() || undefined
       };
       setSeries(prev => prev.map(s => 
         s.id === currentSeries.id ? updatedSeries : s
       ));
       setCurrentSeries(updatedSeries);
-      setSeriesFormData({ name: '', hasBounty: false });
+      setSeriesFormData({ name: '', hasBounty: false, image: '' });
+      setImagePreview(null);
       setShowEditSeries(false);
     }
   };
@@ -286,8 +293,10 @@ const PokerPlayersScoresChart = () => {
               onClick={() => {
                 setSeriesFormData({ 
                   name: currentSeries?.name || '', 
-                  hasBounty: currentSeries?.hasBounty || false 
+                  hasBounty: currentSeries?.hasBounty || false,
+                  image: currentSeries?.image || ''
                 });
+                setImagePreview(currentSeries?.image || null);
                 setShowEditSeries(true);
               }}
               disabled={!currentSeries}
@@ -479,13 +488,45 @@ const PokerPlayersScoresChart = () => {
                         handleAddSeries();
                       } else if (e.key === 'Escape') {
                         setShowAddSeries(false);
-                        setSeriesFormData({ name: '', hasBounty: false });
+                        setSeriesFormData({ name: '', hasBounty: false, image: '' });
+                        setImagePreview(null);
                       }
                     }}
                     className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter series name"
                     autoFocus
                   />
+                </div>
+                <div>
+                  <label htmlFor="new-series-image" className="block mb-2 text-sm font-medium">
+                    Series Image <span className="text-gray-400">(optional)</span>
+                  </label>
+                  <input
+                    type="file"
+                    id="new-series-image"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const dataUrl = event.target?.result as string;
+                          setSeriesFormData(prev => ({ ...prev, image: dataUrl }));
+                          setImagePreview(dataUrl);
+                        };
+                        reader.readAsDataURL(file);
+                      } else {
+                        setSeriesFormData(prev => ({ ...prev, image: '' }));
+                        setImagePreview(null);
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  />
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img src={imagePreview} alt="Series preview" className="object-cover border border-gray-600 rounded-md max-w-32 max-h-32" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="flex items-center space-x-2">
@@ -502,7 +543,8 @@ const PokerPlayersScoresChart = () => {
                   <button
                     onClick={() => {
                       setShowAddSeries(false);
-                      setSeriesFormData({ name: '', hasBounty: false });
+                      setSeriesFormData({ name: '', hasBounty: false, image: '' });
+                      setImagePreview(null);
                     }}
                     className="px-4 py-2 text-gray-300 bg-gray-600 rounded hover:bg-gray-700"
                   >
@@ -541,13 +583,45 @@ const PokerPlayersScoresChart = () => {
                         handleEditSeries();
                       } else if (e.key === 'Escape') {
                         setShowEditSeries(false);
-                        setSeriesFormData({ name: '', hasBounty: false });
+                        setSeriesFormData({ name: '', hasBounty: false, image: '' });
+                        setImagePreview(null);
                       }
                     }}
                     className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter series name"
                     autoFocus
                   />
+                </div>
+                <div>
+                  <label htmlFor="edit-series-image" className="block mb-2 text-sm font-medium">
+                    Series Image <span className="text-gray-400">(optional)</span>
+                  </label>
+                  <input
+                    type="file"
+                    id="edit-series-image"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const dataUrl = event.target?.result as string;
+                          setSeriesFormData(prev => ({ ...prev, image: dataUrl }));
+                          setImagePreview(dataUrl);
+                        };
+                        reader.readAsDataURL(file);
+                      } else {
+                        setSeriesFormData(prev => ({ ...prev, image: '' }));
+                        setImagePreview(null);
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                  />
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img src={imagePreview} alt="Series preview" className="object-cover border border-gray-600 rounded-md max-w-32 max-h-32" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="flex items-center space-x-2">
@@ -564,7 +638,8 @@ const PokerPlayersScoresChart = () => {
                   <button
                     onClick={() => {
                       setShowEditSeries(false);
-                      setSeriesFormData({ name: '', hasBounty: false });
+                      setSeriesFormData({ name: '', hasBounty: false, image: '' });
+                      setImagePreview(null);
                     }}
                     className="px-4 py-2 text-gray-300 bg-gray-600 rounded hover:bg-gray-700"
                   >

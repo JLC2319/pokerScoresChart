@@ -14,6 +14,7 @@ interface Series {
   name: string;
   createdAt: string;
   hasBounty: boolean;
+  image?: string;
 }
 
 export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
