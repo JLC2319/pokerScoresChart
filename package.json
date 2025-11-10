@@ -20,5 +20,11 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.16"
+  },
+  "devDependencies": {
+    "@types/electron": "^1.6.12",
+    "concurrently": "^9.2.1",
+    "electron": "^39.1.1",
+    "electron-builder": "^26.0.12"
   }
 }
