@@ -57,9 +57,13 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
   };
 
   // Sort players by points (descending), then by PPG (descending)
+  // For series with bounties, sort by score (points + bounty) instead
   const sortedPlayers = [...players].sort((a, b) => {
-    if (b.points !== a.points) {
-      return b.points - a.points;
+    const aScore = currentSeries?.hasBounty ? a.points + (a.bounty || 0) : a.points;
+    const bScore = currentSeries?.hasBounty ? b.points + (b.bounty || 0) : b.points;
+    
+    if (bScore !== aScore) {
+      return bScore - aScore;
     }
     return b.ppg - a.ppg;
   });
@@ -144,7 +148,10 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
                     <th className="px-2 py-3 font-bold text-yellow-400">Games</th>
                     <th className="px-2 py-3 font-bold text-yellow-400">PPG</th>
                     {currentSeries?.hasBounty && (
-                      <th className="px-2 py-3 font-bold text-yellow-400">Bounty</th>
+                      <>
+                        <th className="px-2 py-3 font-bold text-yellow-400">Bounty</th>
+                        <th className="px-2 py-3 font-bold text-yellow-400">Score</th>
+                      </>
                     )}
                   </tr>
                 </thead>
@@ -168,7 +175,12 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
                       <td className="px-2 py-3">{player.games}</td>
                       <td className="px-2 py-3">{player.ppg.toFixed(2)}</td>
                       {currentSeries?.hasBounty && (
-                        <td className="px-2 py-3">{(player.bounty || 0).toFixed(2)}</td>
+                        <>
+                          <td className="px-2 py-3">{(player.bounty || 0).toFixed(2)}</td>
+                          <td className="px-2 py-3 font-semibold text-green-400">
+                            {(player.points + (player.bounty || 0)).toFixed(2)}
+                          </td>
+                        </>
                       )}
                     </tr>
                   ))}
