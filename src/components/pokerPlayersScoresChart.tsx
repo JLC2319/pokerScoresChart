@@ -409,6 +409,15 @@ const PokerPlayersScoresChart = () => {
           <h2 className="mb-2 text-2xl font-bold text-blue-400">
             Current Standings
           </h2>
+          {currentSeries?.image && (
+            <div className="flex justify-center mb-4">
+              <img 
+                src={currentSeries.image} 
+                alt={`${currentSeries.name} series`} 
+                className="object-contain border border-gray-600 rounded-lg max-w-48 max-h-48"
+              />
+            </div>
+          )}
           {currentSeries && (
             <p className="mb-4 text-sm text-gray-400">
               Series: {currentSeries.name}

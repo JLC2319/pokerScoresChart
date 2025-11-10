@@ -106,6 +106,15 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
           <h2 className="mb-2 text-2xl font-bold text-blue-400">
             Current Standings
           </h2>
+          {currentSeries?.image && (
+            <div className="mb-4 flex justify-center">
+              <img 
+                src={currentSeries.image} 
+                alt={`${currentSeries.name} series`} 
+                className="max-w-48 max-h-48 object-contain rounded-lg border border-gray-600"
+              />
+            </div>
+          )}
           {currentSeries && (
             <p className="mb-4 text-sm text-gray-400">
               Series: {currentSeries.name}
