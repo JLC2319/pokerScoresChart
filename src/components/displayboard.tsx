@@ -119,7 +119,7 @@ export const LeaderboardComponent = ({ seriesData }: { seriesData: any }) => {
               <img 
                 src={currentSeries.image} 
                 alt={`${currentSeries.name} series`} 
-                className="object-cover w-full border border-gray-600 rounded-lg max-h-48"
+                className="object-cover w-full border border-gray-600 rounded-lg"
               />
             </div>
           )}
