@@ -799,7 +799,7 @@ const PokerPlayersScoresChart = () => {
                     className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
                   />
                   {imagePreview && (
-                    <div className="mt-2 flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-2">
                       <img src={imagePreview} alt="Series preview" className="object-cover border border-gray-600 rounded-md max-w-32 max-h-32" />
                       <button
                         type="button"
