@@ -102,6 +102,33 @@ const PokerPlayersScoresChart = () => {
   };
 
   // Series management functions
+    // Delete series function
+    const handleDeleteSeries = () => {
+      if (!currentSeries || currentSeries.id === 'default') return;
+      if (window.confirm(`Are you sure you want to delete the series "${currentSeries.name}"? This will remove all players in this series.`)) {
+        // Remove series from state
+        setSeries(prev => prev.filter(s => s.id !== currentSeries.id));
+        // Remove players for this series from localStorage
+        localStorage.removeItem(`pokerPlayers_${currentSeries.id}`);
+        // Set another series as current, or default if none left
+        setTimeout(() => {
+          setShowEditSeries(false);
+          setSeriesFormData({ name: '', hasBounty: false, image: '' });
+          setImagePreview(null);
+          // Pick first available series, or create default
+          setSeries(prev => {
+            if (prev.length > 0) {
+              setCurrentSeries(prev[0]);
+              return prev;
+            } else {
+              const def = createDefaultSeries();
+              setCurrentSeries(def);
+              return [def];
+            }
+          });
+        }, 0);
+      }
+    };
   const createDefaultSeries = (): Series => ({
     id: 'default',
     name: 'Default Series',
@@ -788,7 +815,7 @@ const PokerPlayersScoresChart = () => {
                     <span className="text-sm font-medium">Include Bounty Column</span>
                   </label>
                 </div>
-                <div className="flex justify-end space-x-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:space-x-3">
                   <button
                     onClick={() => {
                       setShowEditSeries(false);
@@ -805,6 +832,14 @@ const PokerPlayersScoresChart = () => {
                     className="px-4 py-2 font-bold text-black bg-yellow-600 rounded hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
                   >
                     Save Changes
+                  </button>
+                  <button
+                    onClick={handleDeleteSeries}
+                    disabled={!currentSeries || currentSeries.id === 'default'}
+                    className="px-4 py-2 font-bold text-white bg-red-600 rounded hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
+                    title={currentSeries && currentSeries.id === 'default' ? 'Cannot delete the default series' : 'Delete this series'}
+                  >
+                    Delete Series
                   </button>
                 </div>
               </div>
